@@ -100,6 +100,17 @@ public class ControlWPFWindow : MonoBehaviour
 
     public MIDICCBlendShape midiCCBlendShape;
 
+    public enum CalibrationState
+    {
+        Uncalibrated = 0,
+        WaitingForCalibrating = 1,
+        Calibrating = 2,
+        Calibrated = 3,
+    }
+
+    public CalibrationState calibrationState = CalibrationState.Uncalibrated;
+    public PipeCommands.CalibrateType lastCalibrateType = PipeCommands.CalibrateType.Default; //最後に行ったキャリブレーションの種類
+
     // Use this for initialization
     void Start()
     {
@@ -932,11 +943,13 @@ public class ControlWPFWindow : MonoBehaviour
     private const float LeftHandAngle = -30f;
     private const float RightHandAngle = -30f;
 
-    private async void ImportVRM(string path, bool ImportForCalibration, bool EnableNormalMapFix, bool DeleteHairNormalMap)
+    public async void ImportVRM(string path, bool ImportForCalibration, bool EnableNormalMapFix, bool DeleteHairNormalMap)
     {
         if (ImportForCalibration == false)
         {
+            calibrationState = CalibrationState.Uncalibrated; //キャリブレーション状態を"未キャリブレーション"に設定
             CurrentSettings.VRMPath = path;
+
             var context = new VRMImporterContext();
 
             var bytes = File.ReadAllBytes(path);
@@ -953,6 +966,8 @@ public class ControlWPFWindow : MonoBehaviour
         }
         else
         {
+            calibrationState = CalibrationState.WaitingForCalibrating; //キャリブレーション状態を"キャリブレーション待機中"に設定
+
             if (CurrentModel != null)
             {
                 var currentvrik = CurrentModel.GetComponent<VRIK>();
@@ -1520,8 +1535,9 @@ public class ControlWPFWindow : MonoBehaviour
     }
 
 
-    private IEnumerator Calibrate(PipeCommands.CalibrateType calibrateType)
+    public IEnumerator Calibrate(PipeCommands.CalibrateType calibrateType)
     {
+        lastCalibrateType = calibrateType;//最後に実施したキャリブレーションタイプとして記録
 
         SetVRIK(CurrentModel);
         wristRotationFix.SetVRIK(vrik);
@@ -1606,9 +1622,11 @@ public class ControlWPFWindow : MonoBehaviour
         CurrentSettings.rightElbowTracker = StoreTransform.Create(rightElbowTracker);
         CurrentSettings.leftKneeTracker = StoreTransform.Create(leftKneeTracker);
         CurrentSettings.rightKneeTracker = StoreTransform.Create(rightKneeTracker);
+
+        calibrationState = CalibrationState.Calibrating; //キャリブレーション状態を"キャリブレーション中"に設定(ここまで来なければ失敗している)
     }
 
-    private void EndCalibrate()
+    public void EndCalibrate()
     {
         //トラッカー位置の非表示
         RealTrackerRoot.gameObject.SetActive(false);
@@ -1620,6 +1638,16 @@ public class ControlWPFWindow : MonoBehaviour
         UpdateHandRotation();
         SetCameraLookTarget();
         //SetTrackersToVRIK();
+
+        //直前がキャリブレーション実行中なら
+        if (calibrationState == CalibrationState.Calibrating)
+        {
+            calibrationState = CalibrationState.Calibrated; //キャリブレーション状態を"キャリブレーション完了"に設定
+        }
+        else { 
+            //キャンセルされたなど
+            calibrationState = CalibrationState.Uncalibrated; //キャリブレーション状態を"未キャリブレーション"に設定
+        }
     }
 
     #endregion
@@ -2840,10 +2868,18 @@ public class ControlWPFWindow : MonoBehaviour
             IsRegisteredEventCallBack = true;
             TrackerTransformExtensions.TrackerMovedEvent += TransformExtensions_TrackerMovedEvent;
             ExternalReceiverForVMC.StatusStringUpdated += StatusStringUpdatedEvent;
+            //Application.logMessageReceived += OnLogMessageReceived;
         }
     }
 
-    private async void LoadSettings(bool LoadDefault = false, bool IsFirstTime = false, string path = null)
+    /*
+    private async void OnLogMessageReceived(string log, string stackTrace, LogType logLevel)
+    {
+        //Unityログを処理する
+    }
+    */
+
+    public async void LoadSettings(bool LoadDefault = false, bool IsFirstTime = false, string path = null)
     {
         if (LoadDefault == false)
         {

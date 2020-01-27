@@ -471,14 +471,14 @@ public class ExternalSender : MonoBehaviour
         if (frameOfStatus > periodStatus && periodStatus != 0)
         {
             frameOfStatus = 1;
+            int available = 0;
             if (CurrentModel != null && animator != null)
             {
                 //Available
-                rootBundle.Add(new uOSC.Message("/VMC/Ext/OK", 1));
+                available = 1;
             }
-            else
-            {
-                rootBundle.Add(new uOSC.Message("/VMC/Ext/OK", 0));
+            if (window != null) {
+                rootBundle.Add(new uOSC.Message("/VMC/Ext/OK", (int)available, (int)window.calibrationState, (int)window.lastCalibrateType));
             }
             rootBundle.Add(new uOSC.Message("/VMC/Ext/T", Time.time));
 
