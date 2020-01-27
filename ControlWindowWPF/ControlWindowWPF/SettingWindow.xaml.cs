@@ -202,7 +202,8 @@ namespace VirtualMotionCaptureControlPanel
         private void TrackerConfigButton_Click(object sender, RoutedEventArgs e)
         {
             var win = new TrackerConfigWindow();
-            win.Show();
+            win.Owner = this;
+            win.ShowDialog();
         }
 
         private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -327,8 +328,21 @@ namespace VirtualMotionCaptureControlPanel
                     isSetting = false;
                 });
             });
+            await Globals.Client?.SendCommandWaitAsync(new PipeCommands.GetQualitySettings { }, d =>
+            {
+                var data = (PipeCommands.SetQualitySettings)d;
+                Dispatcher.Invoke(() =>
+                {
+                    isSetting = true;
+                    var antialiasingList = new List<int> { 0, 2, 4, 8 };
+                    AntiAliasingComboBox.ItemsSource = antialiasingList;
+                    AntiAliasingComboBox.SelectedItem = data.antiAliasing;
+                    isSetting = false;
+                });
+            });
             await Globals.Client?.SendCommandAsync(new PipeCommands.TrackerMovedRequest { doSend = true });
             await Globals.Client?.SendCommandAsync(new PipeCommands.StatusStringChangedRequest { doSend = true });
+
         }
 
         private void VirtualWebCamInstallButton_Click(object sender, RoutedEventArgs e)
@@ -451,12 +465,14 @@ namespace VirtualMotionCaptureControlPanel
         private void EyeTracking_TobiiSettingButton_Click(object sender, RoutedEventArgs e)
         {
             var win = new EyeTracking_TobiiSettingWindow();
+            win.Owner = this;
             win.ShowDialog();
         }
 
         private void EyeTracking_ViveProEyeSettingButton_Click(object sender, RoutedEventArgs e)
         {
             var win = new EyeTracking_ViveProEyeSettingWindow();
+            win.Owner = this;
             win.ShowDialog();
         }
 
@@ -587,6 +603,7 @@ namespace VirtualMotionCaptureControlPanel
         private void MidiCCBlendShapeSettingButton_Click(object sender, RoutedEventArgs e)
         {
             var win = new MidiCCBlendShapeSettingWIndow();
+            win.Owner = this;
             win.ShowDialog();
         }
 
@@ -634,5 +651,41 @@ namespace VirtualMotionCaptureControlPanel
             });
         }
 
+        private void AntiAliasingComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (AntiAliasingComboBox.SelectedItem == null) return;
+            SetQualitySettings();
+        }
+
+        private async void SetQualitySettings()
+        {
+            if (isSetting) return;
+            await Globals.Client?.SendCommandAsync(new PipeCommands.SetQualitySettings
+            {
+                antiAliasing = (int)AntiAliasingComboBox.SelectedItem,
+            });
+        }
+
+        private void CheckIPAddressButton_Click(object sender, RoutedEventArgs e)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("IP Address:");
+            try
+            {
+                var hostname = System.Net.Dns.GetHostName();
+                var addresses = System.Net.Dns.GetHostAddresses(hostname);
+                foreach (var address in addresses)
+                {
+                    //IPv4
+                    if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        sb.AppendLine(address.ToString());
+                    }
+                }
+            }
+            catch (Exception) { }
+
+            MessageBox.Show(sb.ToString(), "IP Address", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
     }
 }

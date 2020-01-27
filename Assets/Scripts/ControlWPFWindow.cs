@@ -259,7 +259,8 @@ public class ControlWPFWindow : MonoBehaviour
     private bool doStatusStringUpdated = false;
     private async void StatusStringUpdatedEvent(string e)
     {
-        if (doStatusStringUpdated) {
+        if (doStatusStringUpdated)
+        {
             await server.SendCommandAsync(new PipeCommands.StatusStringChanged { StatusString = e });
         }
     }
@@ -853,6 +854,18 @@ public class ControlWPFWindow : MonoBehaviour
                     HandleControllerAsTracker = CurrentSettings.HandleControllerAsTracker
                 }, e.RequestId);
             }
+            else if (e.CommandType == typeof(PipeCommands.GetQualitySettings))
+            {
+                await server.SendCommandAsync(new PipeCommands.SetQualitySettings
+                {
+                    antiAliasing = CurrentSettings.AntiAliasing,
+                }, e.RequestId);
+            }
+            else if (e.CommandType == typeof(PipeCommands.SetQualitySettings))
+            {
+                var d = (PipeCommands.SetQualitySettings)e.Data;
+                SetQualitySettings(d);
+            }
         }, null);
     }
 
@@ -880,6 +893,12 @@ public class ControlWPFWindow : MonoBehaviour
 
             LightChangedAction?.Invoke();
         }
+    }
+
+    private void SetQualitySettings(PipeCommands.SetQualitySettings setting)
+    {
+        CurrentSettings.AntiAliasing = setting.antiAliasing;
+        QualitySettings.antiAliasing = setting.antiAliasing;
     }
 
     private bool isFirstTimeExecute = true;
@@ -2766,6 +2785,9 @@ public class ControlWPFWindow : MonoBehaviour
         [OptionalField]
         public bool HandleControllerAsTracker;
 
+        [OptionalField]
+        public int AntiAliasing;
+
         //初期値
         [OnDeserializing()]
         internal void OnDeserializingMethod(StreamingContext context)
@@ -2847,6 +2869,8 @@ public class ControlWPFWindow : MonoBehaviour
             FixKneeRotation = true;
 
             HandleControllerAsTracker = false;
+
+            AntiAliasing = 2;
         }
     }
 
@@ -2864,7 +2888,8 @@ public class ControlWPFWindow : MonoBehaviour
     private bool IsRegisteredEventCallBack = false;
     private void RegisterEventCallBack()
     {
-        if (IsRegisteredEventCallBack == false) {
+        if (IsRegisteredEventCallBack == false)
+        {
             IsRegisteredEventCallBack = true;
             TrackerTransformExtensions.TrackerMovedEvent += TransformExtensions_TrackerMovedEvent;
             ExternalReceiverForVMC.StatusStringUpdated += StatusStringUpdatedEvent;
@@ -3060,7 +3085,7 @@ public class ControlWPFWindow : MonoBehaviour
             }
 
             SetExternalMotionSenderEnable(CurrentSettings.ExternalMotionSenderEnable);
-            ChangeExternalMotionSenderAddress(CurrentSettings.ExternalMotionSenderAddress, CurrentSettings.ExternalMotionSenderPort, CurrentSettings.ExternalMotionSenderPeriodStatus, CurrentSettings.ExternalMotionSenderPeriodRoot, CurrentSettings.ExternalMotionSenderPeriodBone, CurrentSettings.ExternalMotionSenderPeriodBlendShape, CurrentSettings.ExternalMotionSenderPeriodCamera, CurrentSettings.ExternalMotionSenderPeriodDevices,CurrentSettings.ExternalMotionSenderOptionString);
+            ChangeExternalMotionSenderAddress(CurrentSettings.ExternalMotionSenderAddress, CurrentSettings.ExternalMotionSenderPort, CurrentSettings.ExternalMotionSenderPeriodStatus, CurrentSettings.ExternalMotionSenderPeriodRoot, CurrentSettings.ExternalMotionSenderPeriodBone, CurrentSettings.ExternalMotionSenderPeriodBlendShape, CurrentSettings.ExternalMotionSenderPeriodCamera, CurrentSettings.ExternalMotionSenderPeriodDevices, CurrentSettings.ExternalMotionSenderOptionString);
             SetExternalMotionReceiverEnable(CurrentSettings.ExternalMotionReceiverEnable);
             ChangeExternalMotionReceiverPort(CurrentSettings.ExternalMotionReceiverPort);
 
@@ -3091,6 +3116,10 @@ public class ControlWPFWindow : MonoBehaviour
 
             SetModelModifierEnable(CurrentSettings.FixKneeRotation);
             SetHandleControllerAsTracker(CurrentSettings.HandleControllerAsTracker);
+            SetQualitySettings(new PipeCommands.SetQualitySettings
+            {
+                antiAliasing = CurrentSettings.AntiAliasing,
+            });
 
             AdditionalSettingAction?.Invoke(null);
 

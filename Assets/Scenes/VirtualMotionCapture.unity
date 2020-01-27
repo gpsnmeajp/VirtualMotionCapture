@@ -2204,6 +2204,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   externalSender: {fileID: 1155637110}
   MIDICCWrapper: {fileID: 1604201751}
+  receivePort: 39540
+  statusString: 
 --- !u!4 &389263780
 Transform:
   m_ObjectHideFlags: 0
@@ -5065,7 +5067,7 @@ Transform:
   m_GameObject: {fileID: 892957807}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 100, y: 100, z: 100}
+  m_LocalScale: {x: 1000, y: 1000, z: 1000}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 6
@@ -6075,12 +6077,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   steamVR2Input: {fileID: 130023280}
   midiCCWrapper: {fileID: 1604201751}
+  externalReceiver: {fileID: 389263779}
+  optionString: 
   periodStatus: 1
   periodRoot: 1
   periodBone: 1
   periodBlendShape: 1
   periodCamera: 1
   periodDevices: 1
+  periodLowRateInfo: 90
 --- !u!4 &1155637111
 Transform:
   m_ObjectHideFlags: 0
