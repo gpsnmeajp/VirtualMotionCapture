@@ -123,12 +123,8 @@
     <system:String x:Key="MainWindow_LightHorizontalDirection">回転</system:String>
 	<system:String x:Key="MainWindow_AdvancedGraphicsOption">高度な画質設定(ポストプロセッシング)</system:String>
 
-<<<<<<< HEAD
     <system:String x:Key="MainWindow_ErrorCalibration">VRMモデルが読み込まれていません。先に読み込んでください。</system:String>
     <system:String x:Key="MainWindow_ErrorCalibrationFail">キャリブレーションに失敗しました。</system:String>
-=======
-	<system:String x:Key="MainWindow_ErrorCalibration">VRMモデルが読み込まれていません。先に読み込んでください。</system:String>
->>>>>>> gpsnmeajp/EyeMovementAlgorithm
 
     <system:String x:Key="MainWindow_Help">ヘルプ</system:String>
     <system:String x:Key="MainWindow_ManualHeader">使い方などはWebサイトをご覧ください</system:String>
