@@ -152,6 +152,11 @@ namespace VMC
         {
             Settings.Current.BackgroundColor = BackgroundRenderer.material.color;
             Settings.Current.CustomBackgroundColor = BackgroundRenderer.material.color;
+
+            OpenVRTrackerManager.Instance.OpenVREventAction += async () =>
+            {
+                await server.SendCommandAsync(new PipeCommands.OpenVRStatus { DashboardOpened = OpenVRTrackerManager.Instance.isDashboardActivated });
+            };
         }
 
         private int SetWindowTitle()
