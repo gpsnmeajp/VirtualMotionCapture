@@ -176,7 +176,7 @@ namespace VMC
             {
                 buildString = "f" + VersionString.Split('f').Last().Split('r').First();
             }
-            NativeMethods.SetUnityWindowTitle($"{Application.productName} {baseVersionString + buildString} ({setWindowNum})");
+            NativeMethods.SetUnityWindowTitle($"{Application.productName} {baseVersionString + buildString} ({setWindowNum})" + "_gpsnmeajp_20221230_nightly");
             return setWindowNum;
         }
 
